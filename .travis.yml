@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t etore/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=TRUE etore/react-test npm test
+
+after_success:
+  - docker build -t etore/multi-client ./client
+  - docker build -t etore/multi-nginx ./nginx
+  - docker build -t etore/multi-server ./server
+  - docker build -t etore/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push etore/multi-client
+  - docker push etore/multi-nginx
+  - docker push etore/multi-server
+  - docker push etore/multi-worker
